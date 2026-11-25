@@ -1,0 +1,48 @@
+workflows:
+  paddyusdt-ios:
+    name: Paddyusdt iOS Build
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.paddyusdt.paddyusdtApp
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: main
+          include: true
+          source: true
+    scripts:
+      - name: Set up code signing and provisioning
+        script: |
+          xcode-project use-profiles
+      - name: Get Flutter packages
+        script: |
+          cd mobile_app
+          flutter pub get
+      - name: Install CocoaPods
+        script: |
+          cd mobile_app/ios
+          pod install
+      - name: Build iOS IPA
+        script: |
+          cd mobile_app
+          flutter build ipa --release \
+            --build-name=1.0.0 \
+            --build-number=$BUILD_NUMBER \
+            --export-options-plist=/Users/builder/export_options.plist
+    artifacts:
+      - mobile_app/build/ios/ipa/*.ipa
+      - mobile_app/build/ios/archive/*.xcarchive
+    publishing:
+      email:
+        recipients:
+          - sndeep@example.com
+        notify:
+          success: true
+          failure: true
