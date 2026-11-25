@@ -3,6 +3,7 @@ import 'services/api_client.dart';
 import 'theme/app_theme.dart';
 import 'screens/explore_plans_screen.dart';
 import 'screens/home_shell.dart';
+import 'screens/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,6 +19,7 @@ class PaddyusdtApp extends StatefulWidget {
 }
 
 class _PaddyusdtAppState extends State<PaddyusdtApp> {
+  bool _showSplash = true;
   bool _authenticated = ApiClient.instance.isLoggedIn;
   Map<String, dynamic>? _pendingPlan;
 
@@ -55,17 +57,22 @@ class _PaddyusdtAppState extends State<PaddyusdtApp> {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       home: AnimatedSwitcher(
-        duration: const Duration(milliseconds: 350),
-        child: _authenticated
-            ? HomeShell(
-                key: const ValueKey('home'),
-                onLoggedOut: _onLoggedOut,
-                initialInvestPlan: _pendingPlan,
+        duration: const Duration(milliseconds: 450),
+        child: _showSplash
+            ? SplashScreen(
+                key: const ValueKey('splash'),
+                onFinished: () => setState(() => _showSplash = false),
               )
-            : ExplorePlansScreen(
-                key: const ValueKey('explore'),
-                onAuthenticated: _onAuthenticated,
-              ),
+            : _authenticated
+                ? HomeShell(
+                    key: const ValueKey('home'),
+                    onLoggedOut: _onLoggedOut,
+                    initialInvestPlan: _pendingPlan,
+                  )
+                : ExplorePlansScreen(
+                    key: const ValueKey('explore'),
+                    onAuthenticated: _onAuthenticated,
+                  ),
       ),
     );
   }
