@@ -46,3 +46,36 @@ workflows:
         notify:
           success: true
           failure: true
+
+  paddyusdt-ios-unsigned:
+    name: Paddyusdt iOS Unsigned (free sideload)
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    environment:
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Get Flutter packages
+        script: |
+          cd mobile_app
+          flutter pub get
+      - name: Install CocoaPods
+        script: |
+          cd mobile_app/ios
+          pod install
+      - name: Build iOS app without code signing
+        script: |
+          cd mobile_app
+          flutter build ios --release --no-codesign \
+            --build-name=1.0.0 \
+            --build-number=$BUILD_NUMBER
+      - name: Package unsigned IPA
+        script: |
+          cd mobile_app/build/ios/iphoneos
+          rm -rf Payload Paddyusdt-unsigned.ipa
+          mkdir Payload
+          cp -R Runner.app Payload/
+          zip -qr Paddyusdt-unsigned.ipa Payload
+    artifacts:
+      - mobile_app/build/ios/iphoneos/Paddyusdt-unsigned.ipa
