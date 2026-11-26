@@ -85,10 +85,8 @@ class AnimatedUsdtText extends StatelessWidget {
       tween: Tween<double>(begin: 0, end: value),
       duration: const Duration(milliseconds: 900),
       curve: Curves.easeOutExpo,
-      builder: (_, v, __) => Text(
-        '${v.toStringAsFixed(2)}$suffix',
-        style: style,
-      ),
+      builder: (_, v, __) =>
+          Text('${v.toStringAsFixed(2)}$suffix', style: style),
     );
   }
 }
@@ -97,13 +95,18 @@ class AnimatedUsdtText extends StatelessWidget {
 class PulseDot extends StatefulWidget {
   final Color color;
   final double size;
-  const PulseDot({super.key, this.color = AppColors.emeraldSoft, this.size = 8});
+  const PulseDot({
+    super.key,
+    this.color = AppColors.emeraldSoft,
+    this.size = 8,
+  });
 
   @override
   State<PulseDot> createState() => _PulseDotState();
 }
 
-class _PulseDotState extends State<PulseDot> with SingleTickerProviderStateMixin {
+class _PulseDotState extends State<PulseDot>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _ctrl;
 
   @override
@@ -217,9 +220,7 @@ class RegionSelector extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: AppColors.irishGreen.withValues(alpha: 0.12),
-        ),
+        border: Border.all(color: AppColors.irishGreen.withValues(alpha: 0.12)),
         boxShadow: [
           BoxShadow(
             color: AppColors.irishGreenDeep.withValues(alpha: 0.05),
@@ -251,24 +252,27 @@ class RegionSelector extends StatelessWidget {
               color: sel
                   ? null
                   : (isVip
-                      ? const Color(0xFFFFFBEB)
-                      : (isActiveRegion ? AppColors.bg : Colors.grey.shade100)),
+                        ? const Color(0xFFFFFBEB)
+                        : (isActiveRegion
+                              ? AppColors.bg
+                              : Colors.grey.shade100)),
               borderRadius: BorderRadius.circular(12),
               border: Border.all(
                 color: sel
                     ? (isVip ? AppColors.goldLight : AppColors.irishGreen)
                     : (isVip
-                        ? AppColors.gold.withValues(alpha: 0.45)
-                        : (isActiveRegion
-                            ? AppColors.irishGreen.withValues(alpha: 0.25)
-                            : Colors.grey.shade300)),
+                          ? AppColors.gold.withValues(alpha: 0.45)
+                          : (isActiveRegion
+                                ? AppColors.irishGreen.withValues(alpha: 0.25)
+                                : Colors.grey.shade300)),
                 width: sel ? 1.2 : 1,
               ),
               boxShadow: sel
                   ? [
                       BoxShadow(
-                        color: (isVip ? AppColors.goldDark : AppColors.irishGreen)
-                            .withValues(alpha: 0.24),
+                        color:
+                            (isVip ? AppColors.goldDark : AppColors.irishGreen)
+                                .withValues(alpha: 0.24),
                         blurRadius: 8,
                         offset: const Offset(0, 3),
                       ),
@@ -279,7 +283,10 @@ class RegionSelector extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               onTap: () => onSelected(r),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 11,
+                  vertical: 8,
+                ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -291,10 +298,10 @@ class RegionSelector extends StatelessWidget {
                         color: sel
                             ? Colors.white
                             : (isVip
-                                ? AppColors.goldDark
-                                : (isActiveRegion
-                                    ? AppColors.ink
-                                    : AppColors.muted)),
+                                  ? AppColors.goldDark
+                                  : (isActiveRegion
+                                        ? AppColors.ink
+                                        : AppColors.muted)),
                         fontWeight: FontWeight.w700,
                         fontSize: 13,
                       ),
@@ -309,10 +316,12 @@ class RegionSelector extends StatelessWidget {
                         color: sel
                             ? Colors.white.withValues(alpha: 0.22)
                             : (isVip
-                                ? AppColors.gold.withValues(alpha: 0.18)
-                                : (isActiveRegion
-                                    ? AppColors.irishGreen.withValues(alpha: 0.12)
-                                    : Colors.grey.shade200)),
+                                  ? AppColors.gold.withValues(alpha: 0.18)
+                                  : (isActiveRegion
+                                        ? AppColors.irishGreen.withValues(
+                                            alpha: 0.12,
+                                          )
+                                        : Colors.grey.shade200)),
                         borderRadius: BorderRadius.circular(999),
                       ),
                       child: Text(
@@ -321,10 +330,10 @@ class RegionSelector extends StatelessWidget {
                           color: sel
                               ? Colors.white
                               : (isVip
-                                  ? AppColors.goldDark
-                                  : (isActiveRegion
-                                      ? AppColors.irishGreen
-                                      : AppColors.muted)),
+                                    ? AppColors.goldDark
+                                    : (isActiveRegion
+                                          ? AppColors.irishGreen
+                                          : AppColors.muted)),
                           fontSize: 11,
                           fontWeight: FontWeight.w800,
                         ),
@@ -341,6 +350,46 @@ class RegionSelector extends StatelessWidget {
   }
 }
 
+/// Shared bottom-sheet frame: never taller than the visible screen, scrolls when
+/// content is long, lifts above the keyboard and clears the phone's navigation bar.
+class SheetFrame extends StatelessWidget {
+  final Widget child;
+  final double radius;
+
+  const SheetFrame({super.key, required this.child, this.radius = 26});
+
+  @override
+  Widget build(BuildContext context) {
+    final mq = MediaQuery.of(context);
+    final keyboard = mq.viewInsets.bottom;
+    final navBar = mq.viewPadding.bottom;
+    final maxHeight = mq.size.height - mq.viewPadding.top - keyboard - 12;
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: keyboard),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: maxHeight),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(radius)),
+          ),
+          child: SingleChildScrollView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            padding: EdgeInsets.fromLTRB(
+              20,
+              14,
+              20,
+              24 + (keyboard > 0 ? 0 : navBar),
+            ),
+            child: child,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// Live Currency Converter Bottom Sheet backed by /api/mobile/rates.
 class CurrencyConverterSheet extends StatefulWidget {
   const CurrencyConverterSheet({super.key});
@@ -351,7 +400,12 @@ class CurrencyConverterSheet extends StatefulWidget {
 
 class _CurrencyConverterSheetState extends State<CurrencyConverterSheet> {
   final _amtCtrl = TextEditingController(text: '1000');
-  Map<String, double> _rates = {'EUR': 1.0, 'USD': 1.08, 'GBP': 0.85, 'AED': 3.97};
+  Map<String, double> _rates = {
+    'EUR': 1.0,
+    'USD': 1.08,
+    'GBP': 0.85,
+    'AED': 3.97,
+  };
   String _from = 'USD';
   String _to = 'EUR';
   bool _loading = true;
@@ -401,14 +455,8 @@ class _CurrencyConverterSheetState extends State<CurrencyConverterSheet> {
   @override
   Widget build(BuildContext context) {
     final currencies = _rates.keys.toList()..sort();
-    final bottom = MediaQuery.of(context).viewInsets.bottom;
 
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(26)),
-      ),
-      padding: EdgeInsets.fromLTRB(20, 14, 20, 26 + bottom),
+    return SheetFrame(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -443,7 +491,9 @@ class _CurrencyConverterSheetState extends State<CurrencyConverterSheet> {
           else ...[
             TextField(
               controller: _amtCtrl,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               decoration: const InputDecoration(labelText: 'Amount'),
               onChanged: (_) => setState(() {}),
             ),
@@ -470,7 +520,10 @@ class _CurrencyConverterSheetState extends State<CurrencyConverterSheet> {
                         _to = tmp;
                       });
                     },
-                    icon: const Icon(Icons.swap_horiz, color: AppColors.irishGreen),
+                    icon: const Icon(
+                      Icons.swap_horiz,
+                      color: AppColors.irishGreen,
+                    ),
                   ),
                 ),
                 Expanded(
@@ -618,7 +671,11 @@ class TelegramQuickRow extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.support_agent_rounded, color: Colors.white, size: 19),
+                  const Icon(
+                    Icons.support_agent_rounded,
+                    color: Colors.white,
+                    size: 19,
+                  ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Column(

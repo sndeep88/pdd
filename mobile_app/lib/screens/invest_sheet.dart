@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../services/api_client.dart';
 import '../theme/app_theme.dart';
+import '../widgets/animated_widgets.dart';
 
 class InvestSheet extends StatefulWidget {
   final Map<String, dynamic> plan;
@@ -60,7 +61,9 @@ class _InvestSheetState extends State<InvestSheet> {
           _selectedCoin = coins.first['code'].toString();
         }
         if (res['open_deposit'] is Map) {
-          _activeDeposit = Map<String, dynamic>.from(res['open_deposit'] as Map);
+          _activeDeposit = Map<String, dynamic>.from(
+            res['open_deposit'] as Map,
+          );
         }
         _loading = false;
       });
@@ -107,7 +110,10 @@ class _InvestSheetState extends State<InvestSheet> {
     }
   }
 
-  Future<void> _createDeposit({bool confirmCancel = false, int? pendingId}) async {
+  Future<void> _createDeposit({
+    bool confirmCancel = false,
+    int? pendingId,
+  }) async {
     setState(() {
       _busy = true;
       _error = null;
@@ -130,7 +136,9 @@ class _InvestSheetState extends State<InvestSheet> {
           builder: (ctx) => AlertDialog(
             title: const Text('Replace pending deposit?'),
             content: Text(
-              (res['message'] ?? 'You have an open deposit on another network. Replace it?').toString(),
+              (res['message'] ??
+                      'You have an open deposit on another network. Replace it?')
+                  .toString(),
             ),
             actions: [
               TextButton(
@@ -154,7 +162,10 @@ class _InvestSheetState extends State<InvestSheet> {
           _activeDeposit = {
             'id': res['payment_id'] ?? res['id'],
             'currency': res['currency'] ?? _selectedCoin,
-            'expected_amount': res['amount_due'] ?? res['expected_amount'] ?? widget.plan['amount'],
+            'expected_amount':
+                res['amount_due'] ??
+                res['expected_amount'] ??
+                widget.plan['amount'],
             'deposit_address': res['address'] ?? res['deposit_address'] ?? '',
             'status': 'pending',
           };
@@ -178,7 +189,9 @@ class _InvestSheetState extends State<InvestSheet> {
   Future<void> _submitTx() async {
     final tx = _txCtrl.text.trim();
     if (tx.length < 16) {
-      setState(() => _error = 'Please paste a valid blockchain transaction hash.');
+      setState(
+        () => _error = 'Please paste a valid blockchain transaction hash.',
+      );
       return;
     }
     setState(() {
@@ -195,7 +208,8 @@ class _InvestSheetState extends State<InvestSheet> {
       if (!mounted) return;
       if (res['ok'] == true) {
         setState(() {
-          _success = (res['message'] ?? 'Deposit verified and credited!').toString();
+          _success = (res['message'] ?? 'Deposit verified and credited!')
+              .toString();
           _busy = false;
         });
         Future.delayed(const Duration(seconds: 1), () {
@@ -203,7 +217,8 @@ class _InvestSheetState extends State<InvestSheet> {
         });
       } else {
         setState(() {
-          _error = (res['error'] ?? 'Transaction could not be verified yet.').toString();
+          _error = (res['error'] ?? 'Transaction could not be verified yet.')
+              .toString();
           _busy = false;
         });
       }
@@ -220,255 +235,250 @@ class _InvestSheetState extends State<InvestSheet> {
   Widget build(BuildContext context) {
     final amt = (widget.plan['amount'] as num? ?? 0).toDouble();
     final pct = (widget.plan['weekly_return_percent'] as num? ?? 0).toDouble();
-    final bottom = MediaQuery.of(context).viewInsets.bottom;
 
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-      ),
-      padding: EdgeInsets.fromLTRB(20, 14, 20, 24 + bottom),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Center(
-              child: Container(
-                width: 42,
-                height: 4,
+    return SheetFrame(
+      radius: 24,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Center(
+            child: Container(
+              width: 42,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(4),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            (widget.plan['name'] ?? 'Investment Plan').toString(),
+            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            '${formatUsdt(amt)}  ·  $pct% Weekly Return',
+            style: const TextStyle(
+              color: AppColors.irishGreen,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 14),
+          if (_loading)
+            const Padding(
+              padding: EdgeInsets.all(24),
+              child: Center(child: CircularProgressIndicator()),
+            )
+          else ...[
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: AppColors.mist,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Wallet available',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  Text(
+                    formatUsdt(_walletAvail),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.irishGreenDeep,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            if (_error != null) ...[
+              Container(
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(4),
+                  color: const Color(0xFFFEE2E2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  _error!,
+                  style: const TextStyle(
+                    color: AppColors.danger,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              (widget.plan['name'] ?? 'Investment Plan').toString(),
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w800),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              '${formatUsdt(amt)}  ·  $pct% Weekly Return',
-              style: const TextStyle(
-                color: AppColors.irishGreen,
-                fontWeight: FontWeight.w700,
+              const SizedBox(height: 12),
+            ],
+            if (_success != null) ...[
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFDCFCE7),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  _success!,
+                  style: const TextStyle(
+                    color: AppColors.irishGreenDeep,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ),
-            ),
-            const SizedBox(height: 14),
-            if (_loading)
-              const Padding(
-                padding: EdgeInsets.all(24),
-                child: Center(child: CircularProgressIndicator()),
-              )
-            else ...[
+              const SizedBox(height: 12),
+            ],
+            if (_canFromWallet) ...[
+              ElevatedButton.icon(
+                onPressed: _busy ? null : _investFromWallet,
+                icon: const Icon(Icons.bolt),
+                label: const Text('Invest Directly From Wallet'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.gold,
+                  foregroundColor: AppColors.ink,
+                ),
+              ),
+              const SizedBox(height: 14),
+            ],
+            if (_activeDeposit != null) ...[
+              const Text(
+                'Send exact amount & paste Tx Hash',
+                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
+              ),
+              const SizedBox(height: 8),
               Container(
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: AppColors.mist,
+                  color: AppColors.bg,
                   borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: AppColors.irishGreen.withValues(alpha: 0.2),
+                  ),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'Wallet available',
-                      style: TextStyle(fontWeight: FontWeight.w600),
-                    ),
                     Text(
-                      formatUsdt(_walletAvail),
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w800,
-                        color: AppColors.irishGreenDeep,
-                      ),
+                      'Amount Due: ${_activeDeposit!['expected_amount']} ${_activeDeposit!['currency']}',
+                      style: const TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Deposit Wallet Address:',
+                      style: TextStyle(fontSize: 12, color: AppColors.muted),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: SelectableText(
+                            (_activeDeposit!['deposit_address'] ?? '')
+                                .toString(),
+                            style: const TextStyle(
+                              fontSize: 13,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.copy, size: 18),
+                          onPressed: () {
+                            Clipboard.setData(
+                              ClipboardData(
+                                text: (_activeDeposit!['deposit_address'] ?? '')
+                                    .toString(),
+                              ),
+                            );
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Address copied!')),
+                            );
+                          },
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
               const SizedBox(height: 12),
-              if (_error != null) ...[
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFEE2E2),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    _error!,
-                    style: const TextStyle(
-                      color: AppColors.danger,
-                      fontSize: 13,
+              TextField(
+                controller: _txCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Blockchain Transaction Hash (TxID)',
+                  hintText: 'Paste Tx Hash after sending',
+                ),
+              ),
+              const SizedBox(height: 12),
+              ElevatedButton(
+                onPressed: _busy ? null : _submitTx,
+                child: _busy
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text('Verify Tx Hash'),
+              ),
+            ] else ...[
+              const Text(
+                'Choose Deposit Network',
+                style: TextStyle(fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: _coins.map((c) {
+                  final code = c['code'].toString();
+                  final sel = code == _selectedCoin;
+                  return ChoiceChip(
+                    label: Text(c['label'].toString()),
+                    selected: sel,
+                    selectedColor: AppColors.irishGreen,
+                    labelStyle: TextStyle(
+                      color: sel ? Colors.white : AppColors.ink,
                       fontWeight: FontWeight.w600,
                     ),
+                    onSelected: (_) => setState(() => _selectedCoin = code),
+                  );
+                }).toList(),
+              ),
+              if (_walletAvail > 0) ...[
+                const SizedBox(height: 10),
+                CheckboxListTile(
+                  contentPadding: EdgeInsets.zero,
+                  value: _useWallet,
+                  onChanged: (v) => setState(() => _useWallet = v == true),
+                  title: const Text(
+                    'Apply available wallet balance',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                   ),
-                ),
-                const SizedBox(height: 12),
-              ],
-              if (_success != null) ...[
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFDCFCE7),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    _success!,
-                    style: const TextStyle(
-                      color: AppColors.irishGreenDeep,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-              ],
-              if (_canFromWallet) ...[
-                ElevatedButton.icon(
-                  onPressed: _busy ? null : _investFromWallet,
-                  icon: const Icon(Icons.bolt),
-                  label: const Text('Invest Directly From Wallet'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.gold,
-                    foregroundColor: AppColors.ink,
-                  ),
-                ),
-                const SizedBox(height: 14),
-              ],
-              if (_activeDeposit != null) ...[
-                const Text(
-                  'Send exact amount & paste Tx Hash',
-                  style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: AppColors.bg,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: AppColors.irishGreen.withValues(alpha: 0.2),
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Amount Due: ${_activeDeposit!['expected_amount']} ${_activeDeposit!['currency']}',
-                        style: const TextStyle(fontWeight: FontWeight.w800),
-                      ),
-                      const SizedBox(height: 8),
-                      const Text(
-                        'Deposit Wallet Address:',
-                        style: TextStyle(fontSize: 12, color: AppColors.muted),
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: SelectableText(
-                              (_activeDeposit!['deposit_address'] ?? '').toString(),
-                              style: const TextStyle(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.copy, size: 18),
-                            onPressed: () {
-                              Clipboard.setData(
-                                ClipboardData(
-                                  text: (_activeDeposit!['deposit_address'] ?? '').toString(),
-                                ),
-                              );
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('Address copied!')),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: _txCtrl,
-                  decoration: const InputDecoration(
-                    labelText: 'Blockchain Transaction Hash (TxID)',
-                    hintText: 'Paste Tx Hash after sending',
-                  ),
-                ),
-                const SizedBox(height: 12),
-                ElevatedButton(
-                  onPressed: _busy ? null : _submitTx,
-                  child: _busy
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Text('Verify Tx Hash'),
-                ),
-              ] else ...[
-                const Text(
-                  'Choose Deposit Network',
-                  style: TextStyle(fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: _coins.map((c) {
-                    final code = c['code'].toString();
-                    final sel = code == _selectedCoin;
-                    return ChoiceChip(
-                      label: Text(c['label'].toString()),
-                      selected: sel,
-                      selectedColor: AppColors.irishGreen,
-                      labelStyle: TextStyle(
-                        color: sel ? Colors.white : AppColors.ink,
-                        fontWeight: FontWeight.w600,
-                      ),
-                      onSelected: (_) => setState(() => _selectedCoin = code),
-                    );
-                  }).toList(),
-                ),
-                if (_walletAvail > 0) ...[
-                  const SizedBox(height: 10),
-                  CheckboxListTile(
-                    contentPadding: EdgeInsets.zero,
-                    value: _useWallet,
-                    onChanged: (v) => setState(() => _useWallet = v == true),
-                    title: const Text(
-                      'Apply available wallet balance',
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                    ),
-                    activeColor: AppColors.irishGreen,
-                  ),
-                ],
-                const SizedBox(height: 12),
-                ElevatedButton(
-                  onPressed: _busy ? null : () => _createDeposit(),
-                  child: _busy
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Text('Continue to Deposit'),
+                  activeColor: AppColors.irishGreen,
                 ),
               ],
+              const SizedBox(height: 12),
+              ElevatedButton(
+                onPressed: _busy ? null : () => _createDeposit(),
+                child: _busy
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text('Continue to Deposit'),
+              ),
             ],
           ],
-        ),
+        ],
       ),
     );
   }
