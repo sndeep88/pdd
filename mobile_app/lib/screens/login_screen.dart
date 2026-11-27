@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../services/api_client.dart';
 import '../theme/app_theme.dart';
 import 'register_screen.dart';
+import 'security_setup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   final VoidCallback onLoginSuccess;
@@ -35,6 +36,21 @@ class _LoginScreenState extends State<LoginScreen> {
     try {
       final res = await ApiClient.instance.login(_emailCtrl.text, _passCtrl.text);
       if (!mounted) return;
+      if (res['needs_setup'] == true) {
+        // Same gate as the website: new password and/or 2FA setup before first use.
+        setState(() => _loading = false);
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => SecuritySetupScreen(
+              setupToken: (res['setup_token'] ?? '').toString(),
+              email: (res['email'] ?? _emailCtrl.text).toString(),
+              mustChangePassword: res['must_change_password'] == true,
+              onDone: widget.onLoginSuccess,
+            ),
+          ),
+        );
+        return;
+      }
       if (res['needs_2fa'] == true) {
         final challenge = (res['challenge_token'] ?? '').toString();
         setState(() => _loading = false);

@@ -161,6 +161,52 @@ class ApiClient {
     return data;
   }
 
+  // ---- Mandatory security setup (same steps as the website) ----
+
+  /// Step 1: set a new password (required after the security update).
+  Future<Map<String, dynamic>> setupPassword({
+    required String setupToken,
+    required String currentPassword,
+    required String password,
+    required String passwordConfirm,
+  }) {
+    return post('setup-password', {
+      'setup_token': setupToken,
+      'current_password': currentPassword,
+      'password': password,
+      'password_confirm': passwordConfirm,
+    });
+  }
+
+  /// Step 2a: server generates the authenticator secret (manual key + otpauth URI).
+  Future<Map<String, dynamic>> setup2faStart(String setupToken) {
+    return post('setup-2fa-start', {'setup_token': setupToken});
+  }
+
+  /// Step 2b: verify the 6-digit code; returns the one-time recovery codes.
+  Future<Map<String, dynamic>> setup2faVerify(String enrollToken, String code) {
+    return post('setup-2fa-verify', {
+      'enroll_token': enrollToken,
+      'code': code.trim(),
+    });
+  }
+
+  /// Step 3: user confirms recovery codes are saved; signs the user in.
+  Future<Map<String, dynamic>> setup2faComplete(String completeToken) async {
+    final data = await post('setup-2fa-complete', {
+      'complete_token': completeToken,
+      'saved_codes': true,
+      'platform': _platformLabel(),
+    });
+    if (data['ok'] == true && data['token'] != null) {
+      await saveSession(
+        data['token'].toString(),
+        (data['user'] as Map<String, dynamic>? ?? {}),
+      );
+    }
+    return data;
+  }
+
   Future<Map<String, dynamic>> register({
     required String fullName,
     required String email,

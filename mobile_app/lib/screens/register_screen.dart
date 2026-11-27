@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/api_client.dart';
 import '../theme/app_theme.dart';
+import 'security_setup_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   final VoidCallback onRegisterSuccess;
@@ -39,7 +40,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       _error = null;
     });
     try {
-      await ApiClient.instance.register(
+      final res = await ApiClient.instance.register(
         fullName: _nameCtrl.text,
         email: _emailCtrl.text,
         phone: _phoneCtrl.text,
@@ -48,6 +49,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
         password: _passCtrl.text,
       );
       if (!mounted) return;
+      if (res['needs_setup'] == true) {
+        // New accounts must enable 2FA first (same as the website).
+        setState(() => _loading = false);
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (_) => SecuritySetupScreen(
+              setupToken: (res['setup_token'] ?? '').toString(),
+              email: (res['email'] ?? _emailCtrl.text).toString(),
+              mustChangePassword: res['must_change_password'] == true,
+              onDone: widget.onRegisterSuccess,
+            ),
+          ),
+        );
+        return;
+      }
       widget.onRegisterSuccess();
     } catch (e) {
       if (!mounted) return;
