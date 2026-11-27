@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../services/notification_center.dart';
+import '../services/push_service.dart';
 import '../theme/app_theme.dart';
 import 'dashboard_tab.dart';
 import 'wallet_tab.dart';
@@ -22,6 +24,21 @@ class HomeShell extends StatefulWidget {
 
 class _HomeShellState extends State<HomeShell> {
   int _index = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    NotificationCenter.instance.start();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) PushService.instance.onSignedIn(context);
+    });
+  }
+
+  @override
+  void dispose() {
+    NotificationCenter.instance.stop();
+    super.dispose();
+  }
 
   void _goToTab(int idx) {
     setState(() => _index = idx);

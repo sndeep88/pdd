@@ -233,7 +233,13 @@ class ApiClient {
     return data;
   }
 
+  /// Lets the push service detach this phone from the account before signing out.
+  Future<void> Function()? beforeLogout;
+
   Future<void> logout() async {
+    try {
+      await beforeLogout?.call();
+    } catch (_) {}
     try {
       await post('logout', {});
     } catch (_) {}

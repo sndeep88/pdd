@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/api_client.dart';
+import '../services/notification_center.dart';
 import '../theme/app_theme.dart';
 import '../widgets/animated_widgets.dart';
 import 'invest_sheet.dart';
@@ -138,39 +139,47 @@ class _DashboardTabState extends State<DashboardTab> {
             icon: const Icon(Icons.currency_exchange, size: 20),
             onPressed: _openConverter,
           ),
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.notifications_outlined),
-                onPressed: () async {
-                  await Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const NotificationsScreen()),
-                  );
-                  _load();
-                },
-              ),
-              if (unread > 0)
-                Positioned(
-                  right: 8,
-                  top: 8,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                    decoration: BoxDecoration(
-                      color: AppColors.goldLight,
-                      borderRadius: BorderRadius.circular(10),
+          ValueListenableBuilder<int>(
+            valueListenable: NotificationCenter.instance.unread,
+            builder: (context, live, _) {
+              final badge = NotificationCenter.instance.synced ? live : unread;
+              return Stack(
+                alignment: Alignment.center,
+                children: [
+                  IconButton(
+                    icon: Icon(
+                      badge > 0 ? Icons.notifications_active : Icons.notifications_outlined,
                     ),
-                    child: Text(
-                      unread > 9 ? '9+' : '$unread',
-                      style: const TextStyle(
-                        color: AppColors.ink,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w800,
+                    onPressed: () async {
+                      await Navigator.of(context).push(
+                        MaterialPageRoute(builder: (_) => const NotificationsScreen()),
+                      );
+                      _load();
+                    },
+                  ),
+                  if (badge > 0)
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: AppColors.goldLight,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Text(
+                          badge > 9 ? '9+' : '$badge',
+                          style: const TextStyle(
+                            color: AppColors.ink,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ),
-            ],
+                ],
+              );
+            },
           ),
         ],
       ),
