@@ -1,0 +1,4 @@
+
+# Firebase service-account keys must never be committed
+*firebase-adminsdk*.json
+firebase-service-account.json

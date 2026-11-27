@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
 import '../services/notification_center.dart';
 import '../services/push_service.dart';
-import '../theme/app_theme.dart';
 import 'dashboard_tab.dart';
 import 'wallet_tab.dart';
 import 'investments_tab.dart';
 import 'withdraw_tab.dart';
 import 'exchange_tab.dart';
+import 'paddypay_tab.dart';
+import '../widgets/paddy_bottom_bar.dart';
 
 class HomeShell extends StatefulWidget {
   final VoidCallback onLoggedOut;
@@ -55,42 +56,23 @@ class _HomeShellState extends State<HomeShell> {
       InvestmentsTab(onWithdrawTap: () => _goToTab(3)),
       const WithdrawTab(),
       ExchangeTab(onLoggedOut: widget.onLoggedOut),
+      const PaddyPayTab(), // index 5 (shown in the centre of the bar)
     ];
 
     return Scaffold(
       body: IndexedStack(index: _index, children: pages),
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _index,
-        onDestinationSelected: _goToTab,
-        backgroundColor: Colors.white,
-        indicatorColor: AppColors.mist,
-        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
-        destinations: const [
-          NavigationDestination(
-            icon: Icon(Icons.dashboard_outlined),
-            selectedIcon: Icon(Icons.dashboard, color: AppColors.irishGreen),
-            label: 'Home',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.account_balance_wallet_outlined),
-            selectedIcon: Icon(Icons.account_balance_wallet, color: AppColors.irishGreen),
-            label: 'Wallet',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.trending_up_outlined),
-            selectedIcon: Icon(Icons.trending_up, color: AppColors.irishGreen),
-            label: 'Invest',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.outbox_outlined),
-            selectedIcon: Icon(Icons.outbox, color: AppColors.irishGreen),
-            label: 'Withdraw',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.swap_horiz_outlined),
-            selectedIcon: Icon(Icons.swap_horiz, color: AppColors.irishGreen),
-            label: 'More',
-          ),
+      bottomNavigationBar: PaddyBottomBar(
+        currentIndex: _index,
+        onSelect: _goToTab,
+        centerIndex: 5,
+        left: const [
+          PaddyBarItem(Icons.dashboard_outlined, Icons.dashboard, 'Home', 0),
+          PaddyBarItem(Icons.account_balance_wallet_outlined, Icons.account_balance_wallet, 'Wallet', 1),
+          PaddyBarItem(Icons.trending_up_outlined, Icons.trending_up, 'Invest', 2),
+        ],
+        right: const [
+          PaddyBarItem(Icons.outbox_outlined, Icons.outbox, 'Withdraw', 3),
+          PaddyBarItem(Icons.swap_horiz_outlined, Icons.swap_horiz, 'More', 4),
         ],
       ),
     );

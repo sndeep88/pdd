@@ -84,6 +84,7 @@ flutter:
 
   assets:
     - assets/images/shamrock.png
+    - assets/images/paddy_card.jpg
     - assets/sounds/
 
   # To add assets to your application, add an assets section, like this:
